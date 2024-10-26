@@ -51,6 +51,7 @@ def before_request():
 # Rota para o Prometheus coletar as métricas
 @app.route('/metrics')
 def metrics():
+    log_message:('info', 'Rota /metrics acessada')
     return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST)
 
 # Endpoint para devolver todos as pessoas cadastradas
@@ -65,27 +66,35 @@ def home():
 
 @app.route('/pessoas', methods=['GET'])
 def pessoas():
+    log_message:('info', 'Acesso a rota /pessoas iniciada')
     try:
         with sqlite3.connect('crud.db') as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
+            log_message = ('info', 'Iniciando consulta de pessoa')
             cursor.execute('''SELECT nome, sobrenome, cpf, data_nascimento FROM pessoa''')
+            log_message = ('info', 'Cadastro encontrado ')
             result = cursor.fetchall()
             return json.dumps([dict(ix) for ix in result]), 200
     except Exception as e:
+        log_message('error', 'Pessoa nao encontrada')
         return jsonify(error=str(e)), 500
 
 @app.route('/pessoa/<cpf>', methods=['GET', 'DELETE'])
 def pessoa_por_cpf(cpf):
+    log_message('info', 'Iniciando consulta da rota /pessoa/{cpf}')
     try:
         with sqlite3.connect('crud.db') as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
             if request.method == 'GET':
+                log_message('info', 'Iniciando consulta de {cpf}')
                 cursor.execute('''SELECT nome, sobrenome, cpf, data_nascimento FROM pessoa WHERE cpf=?''', [cpf])
                 result = cursor.fetchall()
                 if result:
+                    log_message('info', 'Pessoa {cpf} encontrada' )
                     return json.dumps([dict(ix) for ix in result]), 200
+                    log_message('error', '{cpf} não encontrada')
                 return jsonify(error="Pessoa não encontrada"), 404
             elif request.method == 'DELETE':
                 cursor.execute('DELETE FROM pessoa WHERE cpf = ?', (cpf,))
@@ -95,6 +104,8 @@ def pessoa_por_cpf(cpf):
                 return jsonify(success="Pessoa deletada com sucesso"), 200
     except Exception as e:
         return jsonify(error=str(e)), 500
+    log_message('error', 'CPF nao encontrado')
+    
 
 @app.route('/pessoa', methods=['POST'])
 def insere_atualiza_pessoa():
@@ -118,6 +129,7 @@ def insere_atualiza_pessoa():
             return jsonify(success="Pessoa inserida com sucesso"), 201
     except Exception as e:
         return jsonify(error=str(e)), 500
+    log_message('error' '')
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000)
