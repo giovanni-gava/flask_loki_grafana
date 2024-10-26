@@ -51,7 +51,6 @@ def before_request():
 # Rota para o Prometheus coletar as métricas
 @app.route('/metrics')
 def metrics():
-    log_message:('info', 'Rota /metrics acessada')
     return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST)
 
 # Endpoint para devolver todos as pessoas cadastradas
@@ -66,7 +65,6 @@ def home():
 
 @app.route('/pessoas', methods=['GET'])
 def pessoas():
-    log_message:('info', 'Acesso a rota /pessoas iniciada')
     try:
         with sqlite3.connect('crud.db') as conn:
             conn.row_factory = sqlite3.Row
